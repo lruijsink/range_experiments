@@ -1,3 +1,4 @@
 # Visual studio
-/out
+.vs/
+out/
 CMakeSettings.json
