@@ -1,76 +1,87 @@
 #pragma once
 
+#include <utility>
+
 #include "defines.h"
 
 namespace LT3_NAMESPACE { namespace range {
 
-template<class InputRangeT, class PredicateT>
+template<class SourceRangeT, class PredicateT>
 struct filter_view
 {
-  using input_range_type = InputRangeT;
-  using input_range_iterator = typename input_range_type::const_iterator;
-  using value_type = typename input_range_type::value_type;
+  using source_range_type = SourceRangeT;
+  using source_iterator = typename source_range_type::iterator;
   using predicate_type = PredicateT;
-
-  input_range_type const& input_range;
-  predicate_type const& predicate;
 
   struct iterator
   {
-    input_range_iterator input_iterator;
+    source_iterator it;
     filter_view const& view;
+
     void operator++()
     {
-      ++input_iterator;
-      while (input_iterator != view.input_range.end() && !view.predicate(*input_iterator))
-      {
-        ++input_iterator;
-      }
+      if (it == view.source_end)
+        return;
+
+      it++;
+
+      if (view.predicate(*it))
+        return;
+
+      operator++();
     }
 
-    value_type operator*() const
+    auto operator*() const
     {
-      return *input_iterator;
+      return *it;
     }
 
-    bool operator!=(iterator const& rhs) const
+    auto operator!=(iterator rh) const
     {
-      return input_iterator != rhs.input_iterator;
+      return it != rh.it;
     }
   };
 
-  using const_iterator = iterator;
+  source_iterator source_begin;
+  source_iterator source_end;
+  predicate_type predicate;
 
   auto begin()
   {
-    return iterator{input_range.begin(), *this};
+    auto it = source_begin;
+    while (it != source_end && !predicate(*it))
+      it++;
+    return iterator{ it, *this };
   }
 
   auto end()
   {
-    return iterator{input_range.end(), *this};
+    return iterator{ source_end, *this };
   }
 };
 
 template<class PredicateT>
-struct filter_coupler
+struct filter_piper
 {
   using predicate_type = PredicateT;
 
   predicate_type predicate;
 
-  template<class InputRangeT>
-  friend auto operator|(InputRangeT const& input_range,
-                        filter_coupler const& coupler)
+  template<class SourceRangeT>
+  friend auto operator|(SourceRangeT& source_range, filter_piper& piper)
   {
-    return filter_view<InputRangeT, PredicateT>{input_range, coupler.predicate};
+    return filter_view<SourceRangeT, PredicateT>{
+      source_range.begin(),
+      source_range.end(),
+      piper.predicate
+    };
   }
 };
 
 template<class PredicateT>
 auto filter(PredicateT predicate)
 {
-  return filter_coupler<PredicateT>{predicate};
+  return filter_piper<PredicateT>{ predicate };
 }
 
 }}

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.1.0)
 
 project(range_experiments)
 
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O3")
+
 #------------------------------------------------------------------------------
 # Google test and benchmark dependencies
 
