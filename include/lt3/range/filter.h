@@ -23,40 +23,40 @@ struct filter_view
   struct iterator
   {
     source_iterator it;
-    filter_view& view;
+    source_range_type& source_range;
+    predicate_type predicate;
 
-    void operator++() noexcept
-    {
-      it++;
-
-      while (it != view.source_range.end() && !view.predicate(*it))
-        it++;
-    }
-
-    auto operator*() noexcept
+    auto operator*()
     {
       return *it;
     }
 
-    auto operator!=(sentinel& rh) noexcept
+    void operator++() 
+    {
+      it++;
+      while (it != source_range.end() && !predicate(*it))
+        it++;
+    }
+
+    auto operator!=(sentinel& rh) 
     {
       return it != rh.st;
     }
   };
 
-  source_range_type source_range;
-  const predicate_type predicate;
+  source_range_type& source_range;
+  predicate_type predicate;
 
-  auto begin() noexcept
+  auto begin() 
   {
     auto it = source_range.begin();
     while (it != source_range.end() && !predicate(*it))
       it++;
 
-    return iterator{ it, *this };
+    return iterator{ it, source_range, predicate };
   }
 
-  auto end() noexcept
+  auto end() 
   {
     return sentinel{ source_range.end() };
   }
@@ -72,8 +72,10 @@ struct filter_piper
   template<class SourceRangeT>
   friend auto operator|(SourceRangeT& source_range, filter_piper piper) noexcept
   {
-    return filter_view<decltype(wrap_range(source_range)), PredicateT>{
-      wrap_range(source_range),
+    //return filter_view<decltype(wrap_range(source_range)), PredicateT>{
+    return filter_view<decltype(source_range), PredicateT>{
+      //wrap_range(source_range),
+      source_range,
       piper.predicate
     };
   }

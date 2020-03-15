@@ -12,8 +12,14 @@ auto get_values(int64_t n)
 
 static void input_size_args(benchmark::internal::Benchmark* b) {
   b->Arg(0);
-  for (int i = 0; i <= 4; ++i)
-    b->Arg(1ll << (6 * i));
+  b->Arg(1);
+  b->Arg(1 << 2);
+  b->Arg(1 << 3);
+  b->Arg(1 << 4);
+  b->Arg(1 << 7);
+  b->Arg(1 << 10);
+  b->Arg(1 << 15);
+  b->Arg(1 << 20);
 }
 
 auto is_odd = [] (auto x) { return x % 2 == 1; };
@@ -31,7 +37,6 @@ static void bench_filter_view(benchmark::State& state)
     benchmark::DoNotOptimize(sum);
   }
 }
-BENCHMARK(bench_filter_view)->Apply(input_size_args);
 
 static void bench_pure_lambdas(benchmark::State& state)
 {
@@ -46,7 +51,6 @@ static void bench_pure_lambdas(benchmark::State& state)
     benchmark::DoNotOptimize(sum);
   }
 }
-BENCHMARK(bench_pure_lambdas)->Apply(input_size_args);
 
 static void bench_direct(benchmark::State& state)
 {
@@ -64,7 +68,6 @@ static void bench_direct(benchmark::State& state)
     benchmark::DoNotOptimize(sum);
   }
 }
-BENCHMARK(bench_direct)->Apply(input_size_args);
 
 static void bench_explicit(benchmark::State& state)
 {
@@ -88,6 +91,10 @@ static void bench_explicit(benchmark::State& state)
     benchmark::DoNotOptimize(sum);
   }
 }
+
+BENCHMARK(bench_filter_view)->Apply(input_size_args);
+BENCHMARK(bench_pure_lambdas)->Apply(input_size_args);
+BENCHMARK(bench_direct)->Apply(input_size_args);
 BENCHMARK(bench_explicit)->Apply(input_size_args);
 
 BENCHMARK_MAIN();
