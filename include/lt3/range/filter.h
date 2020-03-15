@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "defines.h"
+#include "range_wrapper.h"
 
 namespace LT3_NAMESPACE { namespace range {
 
@@ -17,19 +18,14 @@ struct filter_view
   struct sentinel
   {
     source_sentinel st;
-
-    bool operator!=(sentinel rh) const
-    {
-      return st != rh.st;
-    }
   };
 
   struct iterator
   {
     source_iterator it;
-    filter_view const& view;
+    filter_view& view;
 
-    void operator++()
+    void operator++() noexcept
     {
       it++;
 
@@ -37,21 +33,21 @@ struct filter_view
         it++;
     }
 
-    auto operator*() const
+    auto operator*() noexcept
     {
       return *it;
     }
 
-    auto operator!=(sentinel rh) const
+    auto operator!=(sentinel& rh) noexcept
     {
       return it != rh.st;
     }
   };
 
-  source_range_type& source_range;
+  source_range_type source_range;
   const predicate_type predicate;
 
-  auto begin() const
+  auto begin() noexcept
   {
     auto it = source_range.begin();
     while (it != source_range.end() && !predicate(*it))
@@ -60,7 +56,7 @@ struct filter_view
     return iterator{ it, *this };
   }
 
-  auto end() const
+  auto end() noexcept
   {
     return sentinel{ source_range.end() };
   }
@@ -74,17 +70,17 @@ struct filter_piper
   predicate_type const& predicate;
 
   template<class SourceRangeT>
-  friend auto operator|(SourceRangeT& source_range, filter_piper piper)
+  friend auto operator|(SourceRangeT& source_range, filter_piper piper) noexcept
   {
-    return filter_view<SourceRangeT, PredicateT>{
-      source_range,
+    return filter_view<decltype(wrap_range(source_range)), PredicateT>{
+      wrap_range(source_range),
       piper.predicate
     };
   }
 };
 
 template<class PredicateT>
-constexpr auto filter(PredicateT const& predicate)
+constexpr auto filter(PredicateT const& predicate) noexcept
 {
   return filter_piper<PredicateT>{ predicate };
 }

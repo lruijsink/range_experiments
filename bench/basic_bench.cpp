@@ -15,17 +15,19 @@ static void input_size_args(benchmark::internal::Benchmark* b) {
     b->Arg(1ll << (1 * i));
 }
 
-auto is_odd = [] (auto x) { return x / 2 == 1; };
+auto is_odd = [] (auto x) { return x % 2 == 1; };
 
 static void bench_filter_view(benchmark::State& state)
 {
   auto values = get_values(state.range(0));
   for (auto _ : state)
   {
+    long sum = 0;
     for (auto v : values | lt3::range::filter(is_odd))
     {
-      benchmark::ClobberMemory();
+      sum += v;
     }
+    benchmark::DoNotOptimize(sum);
   }
 }
 BENCHMARK(bench_filter_view)->Apply(input_size_args);
@@ -35,13 +37,15 @@ static void bench_direct(benchmark::State& state)
   auto values = get_values(state.range(0));
   for (auto _ : state)
   {
+    long sum = 0;
     for (auto v : values)
     {
       if (is_odd(v))
       {
-        benchmark::ClobberMemory();
+        sum += v;
       }
     }
+    benchmark::DoNotOptimize(sum);
   }
 }
 BENCHMARK(bench_direct)->Apply(input_size_args);
@@ -51,18 +55,21 @@ static void bench_explicit(benchmark::State& state)
   auto values = get_values(state.range(0));
   for (auto _ : state)
   {
+    long sum = 0;
+
     auto it = values.begin();
     while (it != values.end() && !is_odd(*it))
       it++;
 
     while (it != values.end())
     {
+      sum += *it;
+
       it++;
       while (it != values.end() && !is_odd(*it))
         it++;
-
-      benchmark::ClobberMemory();
     }
+    benchmark::DoNotOptimize(sum);
   }
 }
 BENCHMARK(bench_explicit)->Apply(input_size_args);
