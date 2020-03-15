@@ -2,6 +2,7 @@
 #include "lt3/range/test_range.h"
 
 using namespace lt3::range;
+using namespace lt3::range::with_lambdas;
 
 int main()
 {

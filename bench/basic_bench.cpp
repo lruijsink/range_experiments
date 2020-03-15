@@ -1,5 +1,6 @@
 #include <benchmark/benchmark.h>
 #include "lt3/range/filter.h"
+#include "lt3/range/pure_lambdas.h"
 
 auto get_values(int64_t n)
 {
@@ -11,8 +12,8 @@ auto get_values(int64_t n)
 
 static void input_size_args(benchmark::internal::Benchmark* b) {
   b->Arg(0);
-  for (int i = 0; i <= 10; ++i)
-    b->Arg(1ll << (1 * i));
+  for (int i = 0; i <= 4; ++i)
+    b->Arg(1ll << (6 * i));
 }
 
 auto is_odd = [] (auto x) { return x % 2 == 1; };
@@ -31,6 +32,21 @@ static void bench_filter_view(benchmark::State& state)
   }
 }
 BENCHMARK(bench_filter_view)->Apply(input_size_args);
+
+static void bench_pure_lambdas(benchmark::State& state)
+{
+  auto values = get_values(state.range(0));
+  for (auto _ : state)
+  {
+    long sum = 0;
+    for (auto v : values | lt3::range::pure_lambdas::filter(is_odd))
+    {
+      sum += v;
+    }
+    benchmark::DoNotOptimize(sum);
+  }
+}
+BENCHMARK(bench_pure_lambdas)->Apply(input_size_args);
 
 static void bench_direct(benchmark::State& state)
 {

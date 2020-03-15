@@ -5,7 +5,7 @@
 #include "defines.h"
 #include "range_wrapper.h"
 
-namespace LT3_NAMESPACE { namespace range {
+namespace LT3_NAMESPACE { namespace range { namespace with_lambdas {
 
 template<class RangeT, class ViewT>
 struct view_adapter
@@ -95,4 +95,4 @@ struct filter_view
   }
 };
 
-}}
+}}}

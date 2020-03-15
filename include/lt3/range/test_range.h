@@ -60,13 +60,13 @@ public:
 
   auto begin()
   {
-    assert(obj.constructed);
+    assert(constructed);
     return range.begin();
   }
 
   auto end()
   {
-    assert(obj.constructed);
+    assert(constructed);
     return range.end();
   }
 };
